@@ -1,4 +1,3 @@
-import os 
 import sys,socket,errno 
 from queue import Queue,Empty
 from threading import Thread
@@ -11,8 +10,6 @@ class Receiver(Thread):
 		Thread.__init__(self)
 		self.queue = queue
 		self.s = s
-		
-
 
 	def run(self):
 		i=0
@@ -53,20 +50,23 @@ def main():
 	receiver.start()
 
 
-
 	print('p - prints received messages\ns <msg> - sends message\nq - quits\n')
 	cmd = input('& ')
-	while (cmd[0] != 'q'):
-		if (cmd[0] == 'p'):
+	while (cmd[0] != ('q' or 'Q')):
+		if (cmd[0] == ('p' or 'P')):
 			try:
 				while (True):
 					msg = queue.get(False,None)
 					print(msg)
 			except Empty:
-				print('---')
+				print('------------------------------')
 
-		if (cmd[0] == 's'):
-			message = cmd[2:]
+		if (cmd[0] == ('s' or 'S')):
+			
+			if(cmd[1] != ' '):
+				message = cmd[1:]
+			else:
+				message = cmd[2:]
 			try:
 				s.sendto(message.encode(), (peerIPAddr, peerPort))
 			except OSError as err:
@@ -75,7 +75,7 @@ def main():
 		cmd = input('& ')
 
 
-	print('Bye...')
+	print('Baby come back...')
 main()
 
 
