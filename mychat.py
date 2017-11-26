@@ -23,11 +23,26 @@ def main():
 	    print("Usage: {} destination_IP_addr".format(sys.argv[0])) 
 	    sys.exit(1)
 
+	
 	sourcePort = int(sys.argv[1])
+
 	peerIPAddr = sys.argv[2]
 	peerPort = int(sys.argv[3])
 
+	#Input userName 
 
+	print('Input a username containing an uppercase, lowercase, and at least one of the follow characters: -, _, or .')
+
+	userName = input('- ');
+	uppers = [l for l in userName if l.isupper()]
+	# if(len(uppers) == 0):
+	# 	print("No uppers in here");
+	#userName.find('-') == -1) or (userName.find('_') == -1) or (userName.find('.') == -1)
+	while((('-' not in userName) and ('_' not in userName) and ('.' not in userName)) or (len(uppers) == 0) or (len(uppers) == len(userName))):
+		userName = input('- ');
+		uppers = [l for l in userName if l.isupper()];
+
+	print('Hello ' + userName);
 	try:
 		s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	except:
@@ -51,7 +66,7 @@ def main():
 
 
 	print('p - prints received messages\ns <msg> - sends message\nq - quits\n')
-	cmd = input('& ')
+	cmd = input('- ')
 	while (cmd[0] != ('q' or 'Q')):
 		if (cmd[0] == ('p' or 'P')):
 			try:
