@@ -4,6 +4,16 @@ from threading import Thread
 from time import sleep
 
 BUFLEN=1000
+PORTS = [55000, 55001, 55002, 55003, 55004, 55005, 55006, 55007, 55008];
+IPADDRESSES = ["144.66.140.226", "144.66.140.227", "144.66.140.228", "144.66.140.229", "144.66.140.230", "144.66.140.231", "144.66.140.232", "144.66.140.233", "144.66.140.234",
+"144.66.140.235", "144.66.140.236", "144.66.140.237", "144.66.140.238", "144.66.140.239", "144.66.140.240", "144.66.140.241", "144.66.140.242", "144.66.140.243", "144.66.140.244",
+"144.66.140.245", "144.66.140.246", "144.66.140.247", "144.66.140.248", "144.66.140.249", "144.66.140.250", "144.66.140.70", "144.66.140.71", "144.66.140.72", "144.66.140.73", "144.66.140.74", 
+"144.66.140.75", "144.66.140.76", "144.66.140.77", "144.66.140.78", "144.66.140.79", "144.66.140.80", "144.66.140.81", "144.66.140.82", "144.66.140.83", "144.66.140.84", "144.66.140.85", 
+"144.66.140.86", "144.66.140.87", "144.66.140.88", "144.66.140.89", "144.66.140.90", "144.66.140.91", "144.66.140.92", "144.66.140.93", "144.66.140.94", "144.66.140.95", "144.66.140.96",
+"144.66.140.97", "144.66.140.98"];
+CONNECTEDTO = {};
+PEERPORTS = [];
+
 
 class Receiver(Thread):
 	def __init__(self, queue, s):
@@ -25,7 +35,6 @@ def main():
 
 	
 	sourcePort = int(sys.argv[1])
-
 	peerIPAddr = sys.argv[2]
 	peerPort = int(sys.argv[3])
 
@@ -43,17 +52,40 @@ def main():
 		uppers = [l for l in userName if l.isupper()];
 
 	print('HELLO ' + userName);
+
 	try:
 		s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	except:
 		print("Cannot open socket")
 		sys.exit(1)
 
-	try:
-		s.bind(('',sourcePort))
-	except:
-		print("Cannot bind socket to port")
-		sys.exit(1)
+
+	while(1):
+		sourcePort = 55000
+		try:
+			s.bind(('',sourcePort))
+		except:
+			sourcePort += 1;
+			continue;
+		break; 
+
+	print("sourcePort " + str(sourcePort));
+
+
+	try: 
+		s.gethostbyaddr("142.66.140.47");
+
+	except: 
+		print("host address not active");
+
+
+	for el in PORTS:
+		try:
+			trip = s.getservbyport(el, 'udp');
+			print (trip);
+		except:
+			print("No user at "  + str(el));
+			
 
 
 	# Create a queue to communicate with the worker threads
