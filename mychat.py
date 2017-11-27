@@ -25,12 +25,17 @@ except:
 	print("Cannot open socket")
 	sys.exit(1)
 
-try:	
-	s.bind(('', 55000))
-	# s.bind(('', int(sys.argv[1])))
-except:
-	print("Cannot bind socket to port")
-	sys.exit(1)
+sourcePort = 55000
+while(True):
+	try:	
+		s.bind(('', sourcePort))
+	except:
+		sourcePort += 1
+		continue
+		if(sourcePort > 55008):
+			print("Cannot bind socket to port")
+			sys.exit(1)
+	break
 
 
 class Receiver(Thread):
@@ -71,70 +76,9 @@ def getUserName():
 
 	return userName
 
-
 def main(userName):
-	# if len(sys.argv) != 4:
-	#     print("Usage: {} destination_IP_addr".format(sys.argv[0])) 
-	#     sys.exit(1)
-
-	
-	sourcePort = 55000
-
-	# sourcePort = int(sys.argv[1])
-	# peerIPAddr = sys.argv[2]
-	# peerPort = int(sys.argv[3])
-
-	#Input userName 
-
-	# print('Input a username containing an uppercase, lowercase, and at least one of the follow characters: -, _, or .')
-
-	# userName = input('- ');
-	# uppers = [l for l in userName if l.isupper()]
-	# # if(len(uppers) == 0):
-	# # 	print("No uppers in here");
-	# #userName.find('-') == -1) or (userName.find('_') == -1) or (userName.find('.') == -1)
-	# while((('-' not in userName) and ('_' not in userName) and ('.' not in userName)) or (len(uppers) == 0) or (len(uppers) == len(userName)) or (' ' in userName)):
-	# 	print("Invalid username, please try again")
-	# 	userName = input('- ');
-	# 	uppers = [l for l in userName if l.isupper()];
 
 	print('Logged in as  ' + userName);
-
-	# try:
-	# 	s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	# except:
-	# 	print("Cannot open socket")
-	# 	sys.exit(1)
-
-
-	# while(1):
-	# 	sourcePort = 55000
-	# 	try:
-	# 		s.bind(('',sourcePort))
-	# 	except:
-	# 		sourcePort += 1;
-	# 		continue;
-	# 	break; 
-
-	# print("sourcePort " + str(sourcePort));
-
-
-	# try: 
-	# 	s.gethostbyaddr("142.66.140.47");
-
-	# except: 
-	# 	print("host address not active");
-
-
-	# for el in PORTS:
-	# 	try:
-	# 		trip = s.getservbyport(el, 'udp');
-	# 		print (trip);
-	# 	except:
-	# 		print("No user at "  + str(el));
-			
-
-
 	# Create a queue to communicate with the worker threads
 	queue = Queue()
 	   # Create one daemon to receive messages (currently a fake receiver)
@@ -194,3 +138,32 @@ main(user)
 # except OSError as err:
 #     print('Cannot send: {}'.format(err.strerror))
 #     sys.exit(1)
+
+
+	# sourcePort = int(sys.argv[1])
+	# peerIPAddr = sys.argv[2]
+	# peerPort = int(sys.argv[3])
+
+	#Input userName 
+
+	# print('Input a username containing an uppercase, lowercase, and at least one of the follow characters: -, _, or .')
+
+	# userName = input('- ');
+	# uppers = [l for l in userName if l.isupper()]
+	# # if(len(uppers) == 0):
+	# # 	print("No uppers in here");
+	# #userName.find('-') == -1) or (userName.find('_') == -1) or (userName.find('.') == -1)
+	# while((('-' not in userName) and ('_' not in userName) and ('.' not in userName)) or (len(uppers) == 0) or (len(uppers) == len(userName)) or (' ' in userName)):
+	# 	print("Invalid username, please try again")
+	# 	userName = input('- ');
+	# 	uppers = [l for l in userName if l.isupper()];
+
+		# if len(sys.argv) != 4:
+	#     print("Usage: {} destination_IP_addr".format(sys.argv[0])) 
+	#     sys.exit(1)
+
+		# try:
+	# 	s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	# except:
+	# 	print("Cannot open socket")
+	# 	sys.exit(1)
