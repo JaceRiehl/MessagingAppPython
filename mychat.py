@@ -5,14 +5,37 @@ from time import sleep
 
 BUFLEN=1000
 PORTS = [55000, 55001, 55002, 55003, 55004, 55005, 55006, 55007, 55008];
-IPADDRESSES = ["144.66.140.226", "144.66.140.227", "144.66.140.228", "144.66.140.229", "144.66.140.230", "144.66.140.231", "144.66.140.232", "144.66.140.233", "144.66.140.234",
-"144.66.140.235", "144.66.140.236", "144.66.140.237", "144.66.140.238", "144.66.140.239", "144.66.140.240", "144.66.140.241", "144.66.140.242", "144.66.140.243", "144.66.140.244",
-"144.66.140.245", "144.66.140.246", "144.66.140.247", "144.66.140.248", "144.66.140.249", "144.66.140.250", "144.66.140.70", "144.66.140.71", "144.66.140.72", "144.66.140.73", "144.66.140.74", 
-"144.66.140.75", "144.66.140.76", "144.66.140.77", "144.66.140.78", "144.66.140.79", "144.66.140.80", "144.66.140.81", "144.66.140.82", "144.66.140.83", "144.66.140.84", "144.66.140.85", 
-"144.66.140.86", "144.66.140.87", "144.66.140.88", "144.66.140.89", "144.66.140.90", "144.66.140.91", "144.66.140.92", "144.66.140.93", "144.66.140.94", "144.66.140.95", "144.66.140.96",
-"144.66.140.97", "144.66.140.98"];
+IPADDRESSES = [
+"144.66.140.226", "144.66.140.227", "144.66.140.228", "144.66.140.229", "144.66.140.230", "144.66.140.231", "144.66.140.232", "144.66.140.233", "144.66.140.234",
+"144.66.140.235", "144.66.140.236", "144.66.140.237", "144.66.140.238", "144.66.140.239", "144.66.140.240", "144.66.140.241", "144.66.140.242", "144.66.140.243", 
+"144.66.140.244", "144.66.140.245", "144.66.140.246", "144.66.140.247", "144.66.140.248", "144.66.140.249", "144.66.140.250", 
+"144.66.140.70", "144.66.140.71", "144.66.140.72", "144.66.140.73", "144.66.140.74", "144.66.140.75", "144.66.140.76", "144.66.140.77", "144.66.140.78", 
+"144.66.140.79", "144.66.140.80", "144.66.140.81", "144.66.140.82", "144.66.140.83", "144.66.140.84", "144.66.140.85", "144.66.140.86", "144.66.140.87", 
+"144.66.140.88", "144.66.140.89", "144.66.140.90", "144.66.140.91", "144.66.140.92", "144.66.140.93", "144.66.140.94", "144.66.140.95", "144.66.140.96",
+"144.66.140.97", "144.66.140.98"
+# , "10.184.238.111"
+];
+
 CONNECTEDTO = {};
 PEERPORTS = [];
+
+try:
+	s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+except:
+	print("Cannot open socket")
+	sys.exit(1)
+
+sourcePort = 55000
+while(True):
+	try:	
+		s.bind(('', sourcePort))
+	except:
+		sourcePort += 1
+		continue
+		if(sourcePort > 55008):
+			print("Cannot bind socket to port")
+			sys.exit(1)
+	break
 
 
 class Receiver(Thread):
@@ -25,69 +48,37 @@ class Receiver(Thread):
 		i=0
 		while True:
 			data,addr = self.s.recvfrom(BUFLEN)
-			self.queue.put(data.decode())
+			self.queue.put((data.decode(), addr))
 
+def start(userName):
+	for ip in IPADDRESSES:
+		for port in PORTS:
+			s.sendto(userName.encode(), (ip, port))
 
-def main():
-	if len(sys.argv) != 4:
-	    print("Usage: {} destination_IP_addr".format(sys.argv[0])) 
-	    sys.exit(1)
-
-	
-	sourcePort = int(sys.argv[1])
-	peerIPAddr = sys.argv[2]
-	peerPort = int(sys.argv[3])
-
-	#Input userName 
-
-	print('Input a username containing an uppercase, lowercase, and at least one of the follow characters: -, _, or .')
-
-	userName = input('- ');
-	uppers = [l for l in userName if l.isupper()]
-	# if(len(uppers) == 0):
-	# 	print("No uppers in here");
-	#userName.find('-') == -1) or (userName.find('_') == -1) or (userName.find('.') == -1)
-	while((('-' not in userName) and ('_' not in userName) and ('.' not in userName)) or (len(uppers) == 0) or (len(uppers) == len(userName)) or (' ' in userName)):
+def getUserName():
+	if len(sys.argv) == 2:
+		userName = sys.argv[1]
+		uppers = [l for l in userName if l.isupper()]
+		while((('-' not in userName) and ('_' not in userName) and ('.' not in userName)) or (len(uppers) == 0) or (len(uppers) == len(userName)) or (' ' in userName)):
+			print("Invalid username, please try again")
+			print('Input a username containing an uppercase, lowercase, and at least one of the follow characters: -, _, or .')
+			userName = input('- ');
+			uppers = [l for l in userName if l.isupper()];
+	else:
+		print('Input a username containing an uppercase, lowercase, and at least one of the follow characters: -, _, or .')
 		userName = input('- ');
-		uppers = [l for l in userName if l.isupper()];
+		uppers = [l for l in userName if l.isupper()]
 
-	print('HELLO ' + userName);
+		while((('-' not in userName) and ('_' not in userName) and ('.' not in userName)) or (len(uppers) == 0) or (len(uppers) == len(userName)) or (' ' in userName)):
+			print("Invalid username, please try again")
+			userName = input('- ');
+			uppers = [l for l in userName if l.isupper()];
 
-	try:
-		s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	except:
-		print("Cannot open socket")
-		sys.exit(1)
+	return userName
 
+def main(userName):
 
-	while(1):
-		sourcePort = 55000
-		try:
-			s.bind(('',sourcePort))
-		except:
-			sourcePort += 1;
-			continue;
-		break; 
-
-	print("sourcePort " + str(sourcePort));
-
-
-	try: 
-		s.gethostbyaddr("142.66.140.47");
-
-	except: 
-		print("host address not active");
-
-
-	for el in PORTS:
-		try:
-			trip = s.getservbyport(el, 'udp');
-			print (trip);
-		except:
-			print("No user at "  + str(el));
-			
-
-
+	print('Logged in as  ' + userName);
 	# Create a queue to communicate with the worker threads
 	queue = Queue()
 	   # Create one daemon to receive messages (currently a fake receiver)
@@ -123,7 +114,10 @@ def main():
 
 
 	print('Baby come back...')
-main()
+
+user = getUserName()	
+start(user)
+main(user)
 
 
 
@@ -144,3 +138,32 @@ main()
 # except OSError as err:
 #     print('Cannot send: {}'.format(err.strerror))
 #     sys.exit(1)
+
+
+	# sourcePort = int(sys.argv[1])
+	# peerIPAddr = sys.argv[2]
+	# peerPort = int(sys.argv[3])
+
+	#Input userName 
+
+	# print('Input a username containing an uppercase, lowercase, and at least one of the follow characters: -, _, or .')
+
+	# userName = input('- ');
+	# uppers = [l for l in userName if l.isupper()]
+	# # if(len(uppers) == 0):
+	# # 	print("No uppers in here");
+	# #userName.find('-') == -1) or (userName.find('_') == -1) or (userName.find('.') == -1)
+	# while((('-' not in userName) and ('_' not in userName) and ('.' not in userName)) or (len(uppers) == 0) or (len(uppers) == len(userName)) or (' ' in userName)):
+	# 	print("Invalid username, please try again")
+	# 	userName = input('- ');
+	# 	uppers = [l for l in userName if l.isupper()];
+
+		# if len(sys.argv) != 4:
+	#     print("Usage: {} destination_IP_addr".format(sys.argv[0])) 
+	#     sys.exit(1)
+
+		# try:
+	# 	s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	# except:
+	# 	print("Cannot open socket")
+	# 	sys.exit(1)
