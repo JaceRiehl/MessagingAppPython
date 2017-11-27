@@ -10,9 +10,22 @@ IPADDRESSES = ["144.66.140.226", "144.66.140.227", "144.66.140.228", "144.66.140
 "144.66.140.245", "144.66.140.246", "144.66.140.247", "144.66.140.248", "144.66.140.249", "144.66.140.250", "144.66.140.70", "144.66.140.71", "144.66.140.72", "144.66.140.73", "144.66.140.74", 
 "144.66.140.75", "144.66.140.76", "144.66.140.77", "144.66.140.78", "144.66.140.79", "144.66.140.80", "144.66.140.81", "144.66.140.82", "144.66.140.83", "144.66.140.84", "144.66.140.85", 
 "144.66.140.86", "144.66.140.87", "144.66.140.88", "144.66.140.89", "144.66.140.90", "144.66.140.91", "144.66.140.92", "144.66.140.93", "144.66.140.94", "144.66.140.95", "144.66.140.96",
-"144.66.140.97", "144.66.140.98"];
+"144.66.140.97", "144.66.140.98", "10.184.238.111"];
 CONNECTEDTO = {};
 PEERPORTS = [];
+
+try:
+	s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+except:
+	print("Cannot open socket")
+	sys.exit(1)
+
+try:	
+	s.bind(('', 55000))
+	# s.bind(('', int(sys.argv[1])))
+except:
+	print("Cannot bind socket to port")
+	sys.exit(1)
 
 
 class Receiver(Thread):
@@ -27,47 +40,76 @@ class Receiver(Thread):
 			data,addr = self.s.recvfrom(BUFLEN)
 			self.queue.put(data.decode())
 
+def start():
+	for ip in IPADDRESSES:
+		for port in PORTS:
+			s.sendto("HELLO".encode(), (ip, port))
 
-def main():
-	if len(sys.argv) != 4:
-	    print("Usage: {} destination_IP_addr".format(sys.argv[0])) 
-	    sys.exit(1)
+def getUserName():
+	if len(sys.argv) == 2:
+		userName = sys.argv[1]
+		uppers = [l for l in userName if l.isupper()]
+		while((('-' not in userName) and ('_' not in userName) and ('.' not in userName)) or (len(uppers) == 0) or (len(uppers) == len(userName)) or (' ' in userName)):
+			print("Invalid username, please try again")
+			print('Input a username containing an uppercase, lowercase, and at least one of the follow characters: -, _, or .')
+			userName = input('- ');
+			uppers = [l for l in userName if l.isupper()];
+	else:
+		print('Input a username containing an uppercase, lowercase, and at least one of the follow characters: -, _, or .')
+		userName = input('- ');
+		uppers = [l for l in userName if l.isupper()]
+
+		while((('-' not in userName) and ('_' not in userName) and ('.' not in userName)) or (len(uppers) == 0) or (len(uppers) == len(userName)) or (' ' in userName)):
+			print("Invalid username, please try again")
+			userName = input('- ');
+			uppers = [l for l in userName if l.isupper()];
+
+	return userName
+
+
+def main(userName):
+	# if len(sys.argv) != 4:
+	#     print("Usage: {} destination_IP_addr".format(sys.argv[0])) 
+	#     sys.exit(1)
 
 	
-	sourcePort = int(sys.argv[1])
-	peerIPAddr = sys.argv[2]
-	peerPort = int(sys.argv[3])
+	sourcePort = 55000
+
+	# sourcePort = int(sys.argv[1])
+	# peerIPAddr = sys.argv[2]
+	# peerPort = int(sys.argv[3])
 
 	#Input userName 
 
-	print('Input a username containing an uppercase, lowercase, and at least one of the follow characters: -, _, or .')
+	# print('Input a username containing an uppercase, lowercase, and at least one of the follow characters: -, _, or .')
 
-	userName = input('- ');
-	uppers = [l for l in userName if l.isupper()]
-	# if(len(uppers) == 0):
-	# 	print("No uppers in here");
-	#userName.find('-') == -1) or (userName.find('_') == -1) or (userName.find('.') == -1)
-	while((('-' not in userName) and ('_' not in userName) and ('.' not in userName)) or (len(uppers) == 0) or (len(uppers) == len(userName)) or (' ' in userName)):
-		userName = input('- ');
-		uppers = [l for l in userName if l.isupper()];
+	# userName = input('- ');
+	# uppers = [l for l in userName if l.isupper()]
+	# # if(len(uppers) == 0):
+	# # 	print("No uppers in here");
+	# #userName.find('-') == -1) or (userName.find('_') == -1) or (userName.find('.') == -1)
+	# while((('-' not in userName) and ('_' not in userName) and ('.' not in userName)) or (len(uppers) == 0) or (len(uppers) == len(userName)) or (' ' in userName)):
+	# 	print("Invalid username, please try again")
+	# 	userName = input('- ');
+	# 	uppers = [l for l in userName if l.isupper()];
 
 	print('HELLO ' + userName);
 
-	try:
-		s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	except:
-		print("Cannot open socket")
-		sys.exit(1)
+	# try:
+	# 	s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+	# except:
+	# 	print("Cannot open socket")
+	# 	sys.exit(1)
 
 
-	while(1):
-		sourcePort = 55000
-		try:
-			s.bind(('',sourcePort))
-		except:
-			sourcePort += 1;
-			continue;
-		break; 
+	# while(1):
+	# 	sourcePort = 55000
+	# 	try:
+	# 		s.bind(('',sourcePort))
+	# 	except:
+	# 		sourcePort += 1;
+	# 		continue;
+	# 	break; 
 
 	print("sourcePort " + str(sourcePort));
 
@@ -123,7 +165,10 @@ def main():
 
 
 	print('Baby come back...')
-main()
+
+user = getUserName()	
+start()
+main(user)
 
 
 
