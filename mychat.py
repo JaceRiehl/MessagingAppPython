@@ -98,7 +98,7 @@ def main(userName):
 	# 	userName = input('- ');
 	# 	uppers = [l for l in userName if l.isupper()];
 
-	print('HELLO ' + userName);
+	print('Logged in as  ' + userName);
 
 	# try:
 	# 	s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -116,22 +116,22 @@ def main(userName):
 	# 		continue;
 	# 	break; 
 
-	print("sourcePort " + str(sourcePort));
+	# print("sourcePort " + str(sourcePort));
 
 
-	try: 
-		s.gethostbyaddr("142.66.140.47");
+	# try: 
+	# 	s.gethostbyaddr("142.66.140.47");
 
-	except: 
-		print("host address not active");
+	# except: 
+	# 	print("host address not active");
 
 
-	for el in PORTS:
-		try:
-			trip = s.getservbyport(el, 'udp');
-			print (trip);
-		except:
-			print("No user at "  + str(el));
+	# for el in PORTS:
+	# 	try:
+	# 		trip = s.getservbyport(el, 'udp');
+	# 		print (trip);
+	# 	except:
+	# 		print("No user at "  + str(el));
 			
 
 
