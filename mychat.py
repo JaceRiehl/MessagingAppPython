@@ -18,6 +18,7 @@ IPADDRESSES = [
 
 CONNECTEDTO = {};
 PEERPORTS = [];
+PEERLIST = []
 
 try:
 	s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -35,10 +36,8 @@ while(True):
 			print("Cannot bind socket to port")
 			sys.exit(1)
 		continue
-	print(sourcePort)
 	break
-
-
+## <---------- All Classes go here ----------> ##
 class Receiver(Thread):
 	def __init__(self, queue, s):
 		Thread.__init__(self)
@@ -49,12 +48,29 @@ class Receiver(Thread):
 		i=0
 		while True:
 			data,addr = self.s.recvfrom(BUFLEN)
-			self.queue.put((data.decode(), addr))
+			if(data.decode()[0:5] == 'HELLO'):
+				PEERLIST.append(Peer(data.decode()[5:], addr[0], addr[1]))
+			else:
+				self.queue.put((data.decode(), addr))
+			# for peers in PEERLIST:
+			# 	print(peers.userName + " " + peers.ip + ' ' + str(peers.port))
 
-def start(userName):
+class Peer:
+	def __init__(self, userName, ip, port):
+		self.userName = userName
+		self.ip = ip
+		self.port = port
+
+	def printInfo(self):
+		print(self.userName + self.ip + str(self.port))
+
+## <---------- End of Classes Declaration ----------> ##
+
+def initialHELLO(userName):
 	for ip in IPADDRESSES:
 		for port in PORTS:
-			s.sendto(userName.encode(), (ip, port))
+			appendUser = 'HELLO'+userName
+			s.sendto(appendUser.encode(), (ip, port))
 
 def getUserName():
 	if len(sys.argv) == 2:
@@ -79,7 +95,7 @@ def getUserName():
 
 def main(userName):
 
-	print('Logged in as  ' + userName);
+	print('Logged in as ' + userName);
 	# Create a queue to communicate with the worker threads
 	queue = Queue()
 	   # Create one daemon to receive messages (currently a fake receiver)
@@ -96,7 +112,7 @@ def main(userName):
 			try:
 				while (True):
 					msg = queue.get(False,None)
-					print(msg)
+					print(msg[1][0] + ': ' + msg[0])
 			except Empty:
 				print('------------------------------')
 
@@ -107,17 +123,26 @@ def main(userName):
 			else:
 				message = cmd[2:]
 			try:
-				s.sendto(message.encode(), (peerIPAddr, peerPort))
+				for peers in PEERLIST:
+					s.sendto(message.encode(), (peers.ip, peers.port))
+
+				# s.sendto(message.encode(), (peerIPAddr, peerPort))
 			except OSError as err:
 				print('Cannot send: {}'.format(err.strerror))
 				sys.exit(1)
+
+		if (cmd == 'list'):
+			print("**** Current Users Online ****\n")
+			for peers in PEERLIST:
+				print(peers.userName + " " + peers.ip + ' ' + str(peers.port))
+			print('\n')
 		cmd = input('& ')
 
 
 	print('Baby come back...')
 
 user = getUserName()	
-start(user)
+initialHELLO(user)
 main(user)
 
 
