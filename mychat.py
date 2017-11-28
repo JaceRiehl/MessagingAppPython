@@ -13,11 +13,11 @@ IPADDRESSES = [
 "144.66.140.79", "144.66.140.80", "144.66.140.81", "144.66.140.82", "144.66.140.83", "144.66.140.84", "144.66.140.85", "144.66.140.86", "144.66.140.87", 
 "144.66.140.88", "144.66.140.89", "144.66.140.90", "144.66.140.91", "144.66.140.92", "144.66.140.93", "144.66.140.94", "144.66.140.95", "144.66.140.96",
 "144.66.140.97", "144.66.140.98"
-# , "10.184.238.111"
+, "10.184.238.111", "10.88.193.58"
 ];
 
-CONNECTEDTO = {};
-PEERPORTS = [];
+# CONNECTEDTO = {};
+PEERLIST = []
 
 try:
 	s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -31,13 +31,13 @@ while(True):
 		s.bind(('', sourcePort))
 	except:
 		sourcePort += 1
-		continue
 		if(sourcePort > 55008):
 			print("Cannot bind socket to port")
 			sys.exit(1)
+		continue
 	break
 
-
+## <---------- All Classes go here ----------> ##
 class Receiver(Thread):
 	def __init__(self, queue, s):
 		Thread.__init__(self)
@@ -45,15 +45,45 @@ class Receiver(Thread):
 		self.s = s
 
 	def run(self):
-		i=0
+		# i=0
 		while True:
 			data,addr = self.s.recvfrom(BUFLEN)
-			self.queue.put((data.decode(), addr))
+			if(data.decode()[0:5] == 'HELLO'):
+				if(isNewUser(addr[0], addr[1])):
+					PEERLIST.append(Peer(data.decode()[5:], addr[0], addr[1]))
+			else:
+				self.queue.put((data.decode(), addr))
+			# for peers in PEERLIST:
+			# 	print(peers.userName + " " + peers.ip + ' ' + str(peers.port))
 
-def start(userName):
+class Peer:
+	def __init__(self, userName, ip, port):
+		self.userName = userName
+		self.ip = ip
+		self.port = port
+
+	def printInfo(self):
+		print(self.userName + self.ip + str(self.port))
+
+class Online(Thread):
+	def __init__(self, user):
+		Thread.__init__(self)
+		self.user = user
+
+	def run(self):
+		while(True):
+			for peers in PEERLIST:
+				appendUser = 'HELLO'+user
+				s.sendto(appendUser.encode(), (peers.ip, peers.port))
+			sleep(5)
+
+## <---------- End of Classes Declaration ----------> ##
+
+def initialHELLO(userName):
 	for ip in IPADDRESSES:
 		for port in PORTS:
-			s.sendto(userName.encode(), (ip, port))
+			appendUser = 'HELLO'+userName
+			s.sendto(appendUser.encode(), (ip, port))
 
 def getUserName():
 	if len(sys.argv) == 2:
@@ -76,9 +106,21 @@ def getUserName():
 
 	return userName
 
+def matchUser(address, port):
+	for peers in PEERLIST:
+		if(address == peers.ip and port == peers.port):
+			return peers.userName
+	return address
+
+def isNewUser(ip, port):
+	for peers in PEERLIST:
+		if(peers.ip == ip and peers.port == port):
+			return False
+	return True
+
 def main(userName):
 
-	print('Logged in as  ' + userName);
+	print('Logged in as ' + userName);
 	# Create a queue to communicate with the worker threads
 	queue = Queue()
 	   # Create one daemon to receive messages (currently a fake receiver)
@@ -86,6 +128,9 @@ def main(userName):
 	   # Setting daemon to True will let the main thread exit even though the workers are blocking
 	receiver.daemon = True
 	receiver.start()
+	iAmOnline = Online(userName)
+	iAmOnline.daemon = True
+	iAmOnline.start()
 
 
 	print('p - prints received messages\ns <msg> - sends message\nq - quits\n')
@@ -95,7 +140,8 @@ def main(userName):
 			try:
 				while (True):
 					msg = queue.get(False,None)
-					print(msg)
+
+					print(matchUser(msg[1][0], msg[1][1]) + ': ' + msg[0])
 			except Empty:
 				print('------------------------------')
 
@@ -106,17 +152,26 @@ def main(userName):
 			else:
 				message = cmd[2:]
 			try:
-				s.sendto(message.encode(), (peerIPAddr, peerPort))
+				for peers in PEERLIST:
+					s.sendto(message.encode(), (peers.ip, peers.port))
+
+				# s.sendto(message.encode(), (peerIPAddr, peerPort))
 			except OSError as err:
 				print('Cannot send: {}'.format(err.strerror))
 				sys.exit(1)
+
+		if (cmd == 'list'):
+			print("**** Current Users Online ****\n")
+			for peers in PEERLIST:
+				print(peers.userName + " " + peers.ip + ' ' + str(peers.port))
+			print('\n')
 		cmd = input('& ')
 
 
 	print('Baby come back...')
 
 user = getUserName()	
-start(user)
+initialHELLO(user)
 main(user)
 
 
