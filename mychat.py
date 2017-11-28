@@ -1,6 +1,6 @@
 import sys,socket,errno 
 from queue import Queue,Empty
-from threading import Thread
+from threading import *
 from time import sleep
 
 BUFLEN=1000
@@ -13,7 +13,8 @@ IPADDRESSES = [
 "144.66.140.79", "144.66.140.80", "144.66.140.81", "144.66.140.82", "144.66.140.83", "144.66.140.84", "144.66.140.85", "144.66.140.86", "144.66.140.87", 
 "144.66.140.88", "144.66.140.89", "144.66.140.90", "144.66.140.91", "144.66.140.92", "144.66.140.93", "144.66.140.94", "144.66.140.95", "144.66.140.96",
 "144.66.140.97", "144.66.140.98"
-, "10.184.238.111", "10.88.193.58", "142.66.140.172", "142.66.140.13"
+, "10.184.238.111", "10.88.193.58", "10.76.26.152", "10.76.164.245"
+
 ];
 
 # CONNECTEDTO = {};
@@ -49,21 +50,49 @@ class Receiver(Thread):
 		while True:
 			data,addr = self.s.recvfrom(BUFLEN)
 			if(data.decode()[0:5] == 'HELLO'):
+				# print(data.decode()[5:])
 				if(isNewUser(addr[0], addr[1])):
 					PEERLIST.append(Peer(data.decode()[5:], addr[0], addr[1]))
+					if(len(PEERLIST) > 1):
+						print(data.decode()[5:] + ' is online.')
 			else:
 				self.queue.put((data.decode(), addr))
+				# print()
 			# for peers in PEERLIST:
 			# 	print(peers.userName + " " + peers.ip + ' ' + str(peers.port))
 
-class Peer:
+class Peer(Thread):
 	def __init__(self, userName, ip, port):
+		Thread.__init__(self)
 		self.userName = userName
 		self.ip = ip
 		self.port = port
+		
+		self.isExpired = False
+		# self.time = time
+		self.t = Timer(15.0, self.expire) 
+		# self.startTime()
+		self.t.start()
 
 	def printInfo(self):
 		print(self.userName + self.ip + str(self.port))
+
+	# def startTime(self):
+		# t = Timer(2.0, self.expire) 
+		# self.t.start()
+		# self.resetTimer()
+		# self.isExpired = True
+		# print("is expired")
+
+	def expire(self):
+		self.isExpired = True
+		# print("is expired")
+
+	def resetTimer(self):
+		self.isExpired = False
+		self.t.cancel()
+		self.t = Timer(15.0, self.expire)
+		self.t.start()
 
 class Online(Thread):
 	def __init__(self, user):
@@ -75,6 +104,25 @@ class Online(Thread):
 			for peers in PEERLIST:
 				appendUser = 'HELLO'+user
 				s.sendto(appendUser.encode(), (peers.ip, peers.port))
+			sleep(5)
+
+class UpdatePeers(Thread):
+	def __init__(self):
+		Thread.__init__(self)
+
+	def run(self):
+		while(True):
+			tmpList = []
+			i = 0
+			for peers in PEERLIST:
+				if(peers.isExpired):
+					# peers.remove()
+					tmpList.append(i)
+				i += 1
+			# print(tmpList)
+			for items in tmpList:
+				print(PEERLIST[items].userName + ' has logged off...')
+				del PEERLIST[items]
 			sleep(5)
 
 ## <---------- End of Classes Declaration ----------> ##
@@ -114,7 +162,10 @@ def matchUser(address, port):
 
 def isNewUser(ip, port):
 	for peers in PEERLIST:
+		# print(peers.isExpired)
 		if(peers.ip == ip and peers.port == port):
+			# print('reseting timer for user: ' + peers.userName)
+			peers.resetTimer()
 			return False
 	return True
 
@@ -131,6 +182,9 @@ def main(userName):
 	iAmOnline = Online(userName)
 	iAmOnline.daemon = True
 	iAmOnline.start()
+	updatePeers = UpdatePeers()
+	updatePeers.daemon = True
+	updatePeers.start()
 
 
 	print('p - prints received messages\ns <msg> - sends message\nq - quits\n')
@@ -164,7 +218,12 @@ def main(userName):
 			print("**** Current Users Online ****\n")
 			for peers in PEERLIST:
 				print(peers.userName + " " + peers.ip + ' ' + str(peers.port))
+				# print(peers.userName + "is expired: " + str(peers.isExpired) + '\n')
+
 			print('\n')
+		if (cmd == 'reset'):
+			for peers in PEERLIST:
+				peers.resetTimer()
 		cmd = input('& ')
 
 
