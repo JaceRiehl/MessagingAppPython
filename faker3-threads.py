@@ -15,6 +15,10 @@ class Receiver(Thread):
            i=(i+1)%100
            sleep(0.5)
 
+
+class Sender():
+  def __init__(self,)
+
 def main():
    # Create a queue to communicate with the worker threads
    queue = Queue()
@@ -24,7 +28,7 @@ def main():
    receiver.daemon = True
    receiver.start()
 
-   print('p - prints received messages\ns <msg> - sends message\nq - quits\n')
+   print('p - prints received messages\ns <msg> - sends message\ns message sends the message\n  q - quits\n')
    cmd = input('& ')
    while (cmd[0] != 'q'):
       if (cmd[0] == 'p'):
@@ -35,6 +39,9 @@ def main():
          except Empty:
             print('---')
       cmd = input('& ')
+
+      if (cmd[0] == 's'):
+        
 
    print('Bye...')
 
