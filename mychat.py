@@ -16,7 +16,6 @@ IPADDRESSES = [
 , "10.184.238.111", "10.88.193.58", "10.76.26.152", "10.76.164.245", "142.66.140.172", "142.66.140.13"
 ];
 
-# CONNECTEDTO = {};
 PEERLIST = []
 
 try:
@@ -50,7 +49,6 @@ class Receiver(Thread):
 		while True:
 			data,addr = self.s.recvfrom(BUFLEN)
 			if(data.decode()[0:5] == 'HELLO'):
-				# print(data.decode()[5:])
 				if(isNewUser(addr[0], addr[1])):
 					PEERLIST.append(Peer(data.decode()[5:], addr[0], addr[1]))
 					if(len(PEERLIST) > 1):
@@ -60,36 +58,22 @@ class Receiver(Thread):
 				user = matchUser(addr[0], addr[1])
 				if(user != self.userName):
 					print(user + ': ' + data.decode())
-				# print()
-			# for peers in PEERLIST:
-			# 	print(peers.userName + " " + peers.ip + ' ' + str(peers.port))
 
 class Peer(Thread):
 	def __init__(self, userName, ip, port):
 		Thread.__init__(self)
 		self.userName = userName
 		self.ip = ip
-		self.port = port
-		
+		self.port = port		
 		self.isExpired = False
-		# self.time = time
 		self.t = Timer(15.0, self.expire) 
-		# self.startTime()
 		self.t.start()
 
 	def printInfo(self):
 		print(self.userName + self.ip + str(self.port))
 
-	# def startTime(self):
-		# t = Timer(2.0, self.expire) 
-		# self.t.start()
-		# self.resetTimer()
-		# self.isExpired = True
-		# print("is expired")
-
 	def expire(self):
 		self.isExpired = True
-		# print("is expired")
 
 	def resetTimer(self):
 		self.isExpired = False
@@ -119,10 +103,8 @@ class UpdatePeers(Thread):
 			i = 0
 			for peers in PEERLIST:
 				if(peers.isExpired):
-					# peers.remove()
 					tmpList.append(i)
 				i += 1
-			# print(tmpList)
 			for items in tmpList:
 				print(PEERLIST[items].userName + ' has logged off...')
 				del PEERLIST[items]
@@ -165,21 +147,19 @@ def matchUser(address, port):
 
 def isNewUser(ip, port):
 	for peers in PEERLIST:
-		# print(peers.isExpired)
 		if(peers.ip == ip and peers.port == port):
-			# print('reseting timer for user: ' + peers.userName)
 			peers.resetTimer()
 			return False
 	return True
 
 def main(userName):
-
-	print('Logged in as ' + userName);
+	print('\nWelcome to the messaging app')
+	print('you are logged in as ' + userName);
 	# Create a queue to communicate with the worker threads
 	queue = Queue()
-	   # Create one daemon to receive messages (currently a fake receiver)
+	# Create one daemon to receive messages (currently a fake receiver)
 	receiver = Receiver(queue, s, userName)
-	   # Setting daemon to True will let the main thread exit even though the workers are blocking
+	# Setting daemon to True will let the main thread exit even though the workers are blocking
 	receiver.daemon = True
 	receiver.start()
 	iAmOnline = Online(userName)
@@ -189,21 +169,19 @@ def main(userName):
 	updatePeers.daemon = True
 	updatePeers.start()
 
-
-	print('p - prints received messages\ns <msg> - sends message\nq - quits\n')
-	cmd = input('- ')
+	print(
+		#'p - prints received messages\n
+		's <msg> - sends message\nq - quits\n')
+	cmd = input('')
 	while (cmd[0] != ('q' or 'Q')):
-		if (cmd[0] == ('p' or 'P')):
-			try:
-				while (True):
-					msg = queue.get(False,None)
-
-					print(matchUser(msg[1][0], msg[1][1]) + ': ' + msg[0])
-			except Empty:
-				print('------------------------------')
-
+		# if (cmd[0] == ('p' or 'P')):
+		# 	try:
+		# 		while (True):
+		# 			msg = queue.get(False,None)
+		# 			print(matchUser(msg[1][0], msg[1][1]) + ': ' + msg[0])
+		# 	except Empty:
+		# 		print('------------------------------')
 		if (cmd[0] == ('s' or 'S')):
-			
 			if(cmd[1] != ' '):
 				message = cmd[1:]
 			else:
@@ -211,8 +189,6 @@ def main(userName):
 			try:
 				for peers in PEERLIST:
 					s.sendto(message.encode(), (peers.ip, peers.port))
-
-				# s.sendto(message.encode(), (peerIPAddr, peerPort))
 			except OSError as err:
 				print('Cannot send: {}'.format(err.strerror))
 				sys.exit(1)
@@ -221,66 +197,11 @@ def main(userName):
 			print("**** Current Users Online ****\n")
 			for peers in PEERLIST:
 				print(peers.userName + " " + peers.ip + ' ' + str(peers.port))
-				# print(peers.userName + "is expired: " + str(peers.isExpired) + '\n')
-
 			print('\n')
-		if (cmd == 'reset'):
-			for peers in PEERLIST:
-				peers.resetTimer()
-		cmd = input('& ')
-
+		cmd = input('')
 
 	print('Baby come back...')
 
 user = getUserName()	
 initialHELLO(user)
 main(user)
-
-
-
-
-
-
-
-
-# try:
-#     s.bind(('',sourcePort))
-# except:
-#     print("Cannot bind socket to port")
-#     sys.exit(1)
-
-# try:
-#     # can also use bytes('Hello world', 'UTF-8')
-#     s.sendto(b'Hello world', (peerIPAddr, peerPort))
-# except OSError as err:
-#     print('Cannot send: {}'.format(err.strerror))
-#     sys.exit(1)
-
-
-	# sourcePort = int(sys.argv[1])
-	# peerIPAddr = sys.argv[2]
-	# peerPort = int(sys.argv[3])
-
-	#Input userName 
-
-	# print('Input a username containing an uppercase, lowercase, and at least one of the follow characters: -, _, or .')
-
-	# userName = input('- ');
-	# uppers = [l for l in userName if l.isupper()]
-	# # if(len(uppers) == 0):
-	# # 	print("No uppers in here");
-	# #userName.find('-') == -1) or (userName.find('_') == -1) or (userName.find('.') == -1)
-	# while((('-' not in userName) and ('_' not in userName) and ('.' not in userName)) or (len(uppers) == 0) or (len(uppers) == len(userName)) or (' ' in userName)):
-	# 	print("Invalid username, please try again")
-	# 	userName = input('- ');
-	# 	uppers = [l for l in userName if l.isupper()];
-
-		# if len(sys.argv) != 4:
-	#     print("Usage: {} destination_IP_addr".format(sys.argv[0])) 
-	#     sys.exit(1)
-
-		# try:
-	# 	s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-	# except:
-	# 	print("Cannot open socket")
-	# 	sys.exit(1)
