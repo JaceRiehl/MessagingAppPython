@@ -16,8 +16,7 @@ IPADDRESSES = [
 , "10.184.238.111", "10.88.193.58"
 ];
 
-CONNECTEDTO = {};
-PEERPORTS = [];
+# CONNECTEDTO = {};
 PEERLIST = []
 
 try:
@@ -37,6 +36,7 @@ while(True):
 			sys.exit(1)
 		continue
 	break
+
 ## <---------- All Classes go here ----------> ##
 class Receiver(Thread):
 	def __init__(self, queue, s):
@@ -45,11 +45,12 @@ class Receiver(Thread):
 		self.s = s
 
 	def run(self):
-		i=0
+		# i=0
 		while True:
 			data,addr = self.s.recvfrom(BUFLEN)
 			if(data.decode()[0:5] == 'HELLO'):
-				PEERLIST.append(Peer(data.decode()[5:], addr[0], addr[1]))
+				if(isNewUser(addr[0], addr[1])):
+					PEERLIST.append(Peer(data.decode()[5:], addr[0], addr[1]))
 			else:
 				self.queue.put((data.decode(), addr))
 			# for peers in PEERLIST:
@@ -63,6 +64,18 @@ class Peer:
 
 	def printInfo(self):
 		print(self.userName + self.ip + str(self.port))
+
+class Online(Thread):
+	def __init__(self, user):
+		Thread.__init__(self)
+		self.user = user
+
+	def run(self):
+		while(True):
+			for peers in PEERLIST:
+				appendUser = 'HELLO'+user
+				s.sendto(appendUser.encode(), (peers.ip, peers.port))
+			sleep(5)
 
 ## <---------- End of Classes Declaration ----------> ##
 
@@ -93,6 +106,18 @@ def getUserName():
 
 	return userName
 
+def matchUser(address, port):
+	for peers in PEERLIST:
+		if(address == peers.ip and port == peers.port):
+			return peers.userName
+	return address
+
+def isNewUser(ip, port):
+	for peers in PEERLIST:
+		if(peers.ip == ip and peers.port == port):
+			return False
+	return True
+
 def main(userName):
 
 	print('Logged in as ' + userName);
@@ -103,6 +128,9 @@ def main(userName):
 	   # Setting daemon to True will let the main thread exit even though the workers are blocking
 	receiver.daemon = True
 	receiver.start()
+	iAmOnline = Online(userName)
+	iAmOnline.daemon = True
+	iAmOnline.start()
 
 
 	print('p - prints received messages\ns <msg> - sends message\nq - quits\n')
@@ -112,7 +140,8 @@ def main(userName):
 			try:
 				while (True):
 					msg = queue.get(False,None)
-					print(msg[1][0] + ': ' + msg[0])
+
+					print(matchUser(msg[1][0], msg[1][1]) + ': ' + msg[0])
 			except Empty:
 				print('------------------------------')
 
