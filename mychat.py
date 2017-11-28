@@ -39,10 +39,11 @@ while(True):
 
 ## <---------- All Classes go here ----------> ##
 class Receiver(Thread):
-	def __init__(self, queue, s):
+	def __init__(self, queue, s, userName):
 		Thread.__init__(self)
 		self.queue = queue
 		self.s = s
+		self.userName = userName
 
 	def run(self):
 		# i=0
@@ -56,6 +57,9 @@ class Receiver(Thread):
 						print(data.decode()[5:] + ' is online.')
 			else:
 				self.queue.put((data.decode(), addr))
+				user = matchUser(addr[0], addr[1])
+				if(user != self.userName):
+					print(user + ': ' + data.decode())
 				# print()
 			# for peers in PEERLIST:
 			# 	print(peers.userName + " " + peers.ip + ' ' + str(peers.port))
@@ -174,7 +178,7 @@ def main(userName):
 	# Create a queue to communicate with the worker threads
 	queue = Queue()
 	   # Create one daemon to receive messages (currently a fake receiver)
-	receiver = Receiver(queue,s)
+	receiver = Receiver(queue, s, userName)
 	   # Setting daemon to True will let the main thread exit even though the workers are blocking
 	receiver.daemon = True
 	receiver.start()
