@@ -2,6 +2,7 @@ import sys,socket,errno
 from queue import Queue,Empty
 from threading import *
 from time import sleep
+import os
 
 BUFLEN=1000
 PORTS = [55000, 55001, 55002, 55003, 55004, 55005, 55006, 55007, 55008];
@@ -115,13 +116,14 @@ class UpdatePeers(Thread):
 ## <---------- End of Classes Declaration ----------> ##
 
 def initialHELLO(userName):
-	addIPs("142.66.140.",21,45);
-	addIPs("142.66.140.",46,69);
+	addIPs("142.66.140.",21,69);
+	# addIPs("142.66.140.",46,69);
 	addIPs("142.66.140.",186,186);
 	for ip in IPADDRESSES:
 		for port in PORTS:
 			appendUser = 'HELLO'+userName
 			s.sendto(appendUser.encode(), (ip, port))
+			sleep(0.002)
 
 def getUserName():
 	if len(sys.argv) == 2:
@@ -185,7 +187,10 @@ def main(userName):
 		#'p - prints received messages\n
 		's <msg> - sends message\nq - quits\n')
 	cmd = input('')
-	while (cmd[0] != ('q' or 'Q')):
+	while (cmd != ('q' or 'Q')):
+		if (cmd == ''):
+			cmd = input('')
+			continue
 		# if (cmd[0] == ('p' or 'P')):
 		# 	try:
 		# 		while (True):
@@ -210,6 +215,10 @@ def main(userName):
 			for peers in PEERLIST:
 				print(peers.userName + " " + peers.ip + ' ' + str(peers.port))
 			print('\n')
+
+		if(cmd == 'clear'):
+			os.system('clear')
+			print('s <msg> - sends message\nq - quits\n')
 		cmd = input('')
 
 	print('Baby come back...')
