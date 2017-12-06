@@ -42,9 +42,14 @@ class Receiver(Thread):
 			data,addr = self.s.recvfrom(BUFLEN)
 			if(data.decode()[0:5] == 'HELLO'):
 				if(isNewUser(addr[0], addr[1])):
-					PEERLIST.append(Peer(data.decode()[5:], addr[0], addr[1]))
+					index = 0
+					if(data.decode()[5] == ' '):
+						index = 6
+					else:
+						index = 5
+					PEERLIST.append(Peer(data.decode()[index:], addr[0], addr[1]))
 					if(len(PEERLIST) > 1):
-						print(data.decode()[5:] + ' is online.')
+						print(data.decode()[index:] + ' is online.')
 			else:
 				self.queue.put((data.decode(), addr))
 				user = matchUser(addr[0], addr[1])
